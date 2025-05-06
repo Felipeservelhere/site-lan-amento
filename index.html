@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sistema de Transporte</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      width: 350px;
+      text-align: center;
+    }
+    .login-container h1 {
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .login-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    .login-button:hover {
+      background-color: #45a049;
+    }
+    .error-message {
+      color: #f44336;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Sistema de Transporte</h1>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="username">Usuário</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="input-group">
+        <label for="password">Senha</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit" class="login-button">Entrar</button>
+      <div id="errorMessage" class="error-message"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.toLowerCase();
+      const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('errorMessage');
+      
+      // Limpa mensagens de erro anteriores
+      errorMessage.textContent = '';
+      
+      // Verifica as credenciais
+      if ((username === 'aparecidoleme' && password === '123') || 
+          (username === 'felipeservelhere' && password === '123')) {
+        
+        // Armazena os dados do usuário no localStorage
+        if (username === 'aparecidoleme') {
+          localStorage.setItem('currentUser', JSON.stringify({
+            nome: 'APARECIDO LEME',
+            placa: 'FTF-9C56',
+            tipo: 'motorista'
+          }));
+          window.location.href = 'formulario.html';
+        } else {
+          localStorage.setItem('currentUser', JSON.stringify({
+            nome: 'FELIPE SERVELHERE',
+            tipo: 'administrador'
+          }));
+          window.location.href = 'admin.html';
+        }
+      } else {
+        errorMessage.textContent = 'Usuário ou senha incorretos!';
+      }
+    });
+  </script>
+</body>
+</html>

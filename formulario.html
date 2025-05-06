@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formulário de Transporte</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 480px;
+      margin: auto;
+      background-color: #f7f7f7;
+      position: relative;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 8px; /* Diminuído o padding */
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px; /* Fonte menor */
+      width: auto; /* Largura automática */
+    }
+    .user-info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #3498db;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 25px;
+    }
+    input, select, textarea, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      font-size: 1em;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .row > div {
+      margin-bottom: 10px;
+    }
+    .section {
+      border: 1px solid #000;
+      padding: 15px;
+      margin-top: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+    .section-title {
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1.1em;
+    }
+    .despesa-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      background: #f9f9f9;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .despesa-item span {
+      display: block;
+    }
+    .despesa-actions button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      width: auto;
+    }
+    .image-preview {
+      max-width: 100px;
+      max-height: 100px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button[type="button"] {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button[type="button"]:hover {
+      background-color: #45a049;
+    }
+    #salvar-viagem {
+      background-color: #2196F3;
+      margin-top: 20px;
+    }
+    #salvar-viagem:hover {
+      background-color: #0b7dda;
+    }
+    input[readonly] {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <div class="user-info" id="userInfo"></div>
+
+  <form id="formulario">
+    <div class="row">
+      <div>
+        <label for="motorista">Motorista</label>
+        <input type="text" id="motorista" name="motorista" readonly>
+      </div>
+      <div>
+        <label for="placa">Placa</label>
+        <input type="text" id="placa" name="placa" readonly>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div>
+        <label for="agenciador">Agenciador</label>
+        <input type="text" id="agenciador" name="agenciador">
+      </div>
+      <div>
+        <label for="preco">Preço por tonelada</label>
+        <input type="text" id="preco" name="preco" placeholder="R$ 0,00">
+      </div>
+    </div>
+    
+    <div class="row">
+      <div>
+        <label for="data-carga">Data Carga</label>
+        <input type="date" id="data-carga" name="data-carga">
+      </div>
+      <div>
+        <label for="data-descarga">Data Descarga</label>
+        <input type="date" id="data-descarga" name="data-descarga">
+      </div>
+    </div>
+    
+    <div class="row">
+      <div>
+        <label for="local-carga">Local da Carga</label>
+        <input type="text" id="local-carga" name="local-carga">
+      </div>
+      <div>
+        <label for="local-descarga">Local da Descarga</label>
+        <input type="text" id="local-descarga" name="local-descarga">
+      </div>
+    </div>
+    
+    <div class="row">
+      <div>
+        <label for="km-carga">KM da Carga</label>
+        <input type="number" id="km-carga" name="km-carga">
+      </div>
+      <div>
+        <label for="km-descarga">KM da Descarga</label>
+        <input type="number" id="km-descarga" name="km-descarga">
+      </div>
+    </div>
+    
+    <div class="row">
+      <div>
+        <label for="peso-carga">Peso da Carga (kg)</label>
+        <input type="number" id="peso-carga" name="peso-carga" step="0.01">
+      </div>
+      <div>
+        <label for="peso-descarga">Peso da Descarga (kg)</label>
+        <input type="number" id="peso-descarga" name="peso-descarga" step="0.01">
+      </div>
+    </div>
+    
+    <label for="receitas">Total de Receitas</label>
+    <input type="text" id="receitas" name="receitas" placeholder="R$ 0,00">
+    
+    <div class="section">
+      <div class="section-title">Despesas</div>
+      <div class="row">
+        <div>
+          <label for="categoria">Categoria</label>
+          <select id="categoria" name="categoria">
+            <option value="">Selecione</option>
+            <option>Bonificação</option>
+            <option>Seguro Carga</option>
+            <option>Outros descontos</option>
+            <option>Quebra</option>
+            <option>Pedágio Vazio</option>
+            <option>Pedágio Cheio</option>
+            <option>Borracharia</option>
+            <option>Outros</option>
+          </select>
+        </div>
+        <div>
+          <label for="descricao">Descrição</label>
+          <input type="text" id="descricao" name="descricao">
+        </div>
+      </div>
+      
+      <div class="row">
+        <div>
+          <label for="valor">Valor</label>
+          <input type="text" id="valor" name="valor" placeholder="R$ 0,00">
+        </div>
+        <div>
+          <label for="nota">Adicionar Nota Fiscal</label>
+          <input type="file" id="nota" name="nota" accept="image/*">
+          <div id="image-preview-container"></div>
+        </div>
+      </div>
+      
+      <button type="button" onclick="salvarDespesa()">Salvar Despesa</button>
+    </div>
+  </form>
+  
+  <div class="section">
+    <div class="section-title">Despesas Lançadas</div>
+    <div id="lista-despesas"></div>
+  </div>
+  
+  <button id="salvar-viagem" onclick="salvarViagem()">Salvar Viagem</button>
+
+  <script>
+    // Verifica o login ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+      const userData = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (!userData || userData.tipo !== 'motorista') {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Mostra informações do usuário
+      document.getElementById('userInfo').textContent = userData.nome;
+      
+      // Preenche automaticamente os campos do motorista
+      document.getElementById('motorista').value = userData.nome;
+      document.getElementById('placa').value = userData.placa;
+    });
+
+    const listaDespesas = document.getElementById("lista-despesas");
+    const imagePreviewContainer = document.getElementById("image-preview-container");
+    const notaInput = document.getElementById("nota");
+    let despesas = [];
+
+    // Mostrar preview da imagem selecionada
+    notaInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          imagePreviewContainer.innerHTML = `<img src="${event.target.result}" class="image-preview" alt="Preview da nota">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function formatarMoeda(input) {
+      let valor = input.value.replace(/\D/g, "");
+      valor = (parseInt(valor || "0") / 100).toFixed(2);
+      input.value = "R$ " + valor.replace(".", ",");
+    }
+
+    // Aplica formatação de moeda aos campos relevantes
+    ["preco", "valor", "receitas"].forEach(id => {
+      const input = document.getElementById(id);
+      input.addEventListener("input", () => formatarMoeda(input));
+      // Formata o valor inicial se existir
+      if (input.value) formatarMoeda(input);
+    });
+
+    async function salvarDespesa() {
+      const categoria = document.getElementById("categoria").value;
+      const descricao = document.getElementById("descricao").value;
+      const valor = document.getElementById("valor").value;
+      const notaFile = notaInput.files[0];
+      
+      if (!valor || valor === "R$ 0,00") {
+        return alert("Informe o valor da despesa.");
+      }
+      
+      // Converter imagem para base64 se existir
+      let imagemBase64 = null;
+      if (notaFile) {
+        imagemBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(notaFile);
+        });
+      }
+
+      const despesa = {
+        categoria: categoria || 'Não definida',
+        descricao: descricao.trim() || '',
+        valor,
+        imagem: imagemBase64
+      };
+      
+      despesas.push(despesa);
+      renderDespesas();
+      
+      // Limpar campos
+      document.getElementById("categoria").value = "";
+      document.getElementById("descricao").value = "";
+      document.getElementById("valor").value = "";
+      notaInput.value = "";
+      imagePreviewContainer.innerHTML = "";
+    }
+
+    function renderDespesas() {
+      listaDespesas.innerHTML = "";
+      
+      if (despesas.length === 0) {
+        listaDespesas.innerHTML = "<p style='text-align: center; color: #777;'>Nenhuma despesa cadastrada</p>";
+        return;
+      }
+      
+      despesas.forEach((d, index) => {
+        const div = document.createElement("div");
+        div.className = "despesa-item";
+        
+        const imgTag = d.imagem ? 
+          `<div><img src="${d.imagem}" class="image-preview" alt="Nota fiscal"></div>` : 
+          "";
+        
+        div.innerHTML = `
+          <div>
+            <div><strong>${d.categoria}</strong></div>
+            <div>${d.descricao || 'Sem descrição'}</div>
+            <div>${d.valor}</div>
+            ${imgTag}
+          </div>
+          <div class="despesa-actions">
+            <button onclick="editarDespesa(${index})">Editar</button>
+            <button onclick="excluirDespesa(${index})">Excluir</button>
+          </div>
+        `;
+        listaDespesas.appendChild(div);
+      });
+    }
+
+    function editarDespesa(index) {
+      const d = despesas[index];
+      document.getElementById("categoria").value = d.categoria;
+      document.getElementById("descricao").value = d.descricao;
+      document.getElementById("valor").value = d.valor;
+      
+      if (d.imagem) {
+        imagePreviewContainer.innerHTML = `<img src="${d.imagem}" class="image-preview" alt="Nota fiscal">`;
+      } else {
+        imagePreviewContainer.innerHTML = "";
+      }
+      
+      despesas.splice(index, 1);
+      renderDespesas();
+    }
+
+    function excluirDespesa(index) {
+      if (confirm("Deseja realmente excluir esta despesa?")) {
+        despesas.splice(index, 1);
+        renderDespesas();
+      }
+    }
+
+    function parseValorReal(valorStr) {
+      return parseFloat(valorStr.replace("R$", "").replace(".", "").replace(",", ".").trim()) || 0;
+    }
+
+    function salvarViagem() {
+      // Validação dos campos obrigatórios
+      const camposObrigatorios = [
+        'agenciador', 'data-carga', 'data-descarga', 
+        'local-carga', 'local-descarga', 'receitas'
+      ];
+      
+      for (const campo of camposObrigatorios) {
+        if (!document.getElementById(campo).value) {
+          alert(`Por favor, preencha o campo ${campo.replace('-', ' ')}`);
+          return;
+        }
+      }
+      
+      if (parseValorReal(document.getElementById("receitas").value) <= 0) {
+        alert("O valor das receitas deve ser maior que zero");
+        return;
+      }
+
+      const totalDespesas = despesas.reduce((acc, d) => acc + parseValorReal(d.valor), 0);
+      
+      const dados = {
+        motorista: document.getElementById("motorista").value,
+        placa: document.getElementById("placa").value,
+        agenciador: document.getElementById("agenciador").value,
+        preco: document.getElementById("preco").value || "R$ 0,00",
+        dataCarga: document.getElementById("data-carga").value,
+        dataDescarga: document.getElementById("data-descarga").value,
+        localCarga: document.getElementById("local-carga").value,
+        localDescarga: document.getElementById("local-descarga").value,
+        kmCarga: document.getElementById("km-carga").value || 0,
+        kmDescarga: document.getElementById("km-descarga").value || 0,
+        pesoCarga: document.getElementById("peso-carga").value || 0,
+        pesoDescarga: document.getElementById("peso-descarga").value || 0,
+        receitas: document.getElementById("receitas").value,
+        despesas: despesas,
+        totalDespesas: "R$ " + totalDespesas.toFixed(2).replace(".", ","),
+        dataCadastro: new Date().toISOString()
+      };
+      
+      let viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      viagens.push(dados);
+      localStorage.setItem("viagens", JSON.stringify(viagens));
+      
+      alert("Viagem salva com sucesso!");
+      
+      // Limpa o formulário, mantendo apenas motorista e placa
+      document.getElementById("formulario").reset();
+      const userData = JSON.parse(localStorage.getItem('currentUser'));
+      document.getElementById("motorista").value = userData.nome;
+      document.getElementById("placa").value = userData.placa;
+      
+      despesas = [];
+      renderDespesas();
+      imagePreviewContainer.innerHTML = "";
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    }
+
+    // Inicializa a lista de despesas vazia
+    renderDespesas();
+  </script>
+</body>
+</html>

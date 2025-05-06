@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Viagens Salvas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa; 
+      margin: 0; 
+      padding: 0; 
+      color: #333;
+    }
+    .container { 
+      max-width: 1200px; 
+      margin: auto; 
+      padding: 20px; 
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .search-bar { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 10px; 
+      margin-bottom: 20px; 
+    }
+    .search-bar input, .search-bar select { 
+      padding: 10px 15px;
+      font-size: 16px; 
+      border-radius: 8px; 
+      border: 1px solid #ddd;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      flex: 1; 
+    }
+    .viagens-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+      gap: 20px; 
+    }
+    .viagem-card { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      font-size: 14px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .viagem-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .viagem-card button { 
+      margin: 6px 4px; 
+      padding: 8px 15px; 
+      border: none; 
+      border-radius: 6px; 
+      background: #3498db; 
+      color: white; 
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+    .viagem-card button:hover {
+      background: #2980b9;
+    }
+    .viagem-card button:nth-child(2) {
+      background: #2ecc71;
+    }
+    .viagem-card button:nth-child(2):hover {
+      background: #27ae60;
+    }
+    .export-buttons { 
+      margin: 30px 0; 
+      display: flex; 
+      gap: 15px; 
+      justify-content: center; 
+    }
+    .export-buttons button {
+      padding: 12px 25px;
+      background: #9b59b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .export-buttons button:hover {
+      background: #8e44ad;
+    }
+    .export-buttons button:last-child {
+      background: #e74c3c;
+    }
+    .export-buttons button:last-child:hover {
+      background: #c0392b;
+    }
+    .total-saldo {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .user-info {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #3498db;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 190px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    
+    /* Modais */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 12px;
+      width: 85%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      animation: slideDown 0.4s;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+    }
+    .close-btn {
+      color: #95a5a6;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .close-btn:hover {
+      color: #e74c3c;
+    }
+    
+    /* Modal de Detalhes */
+    .detalhes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .detalhes-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .detalhes-item strong {
+      display: block;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    .detalhes-item span {
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    
+    /* Modal de Despesas */
+    .total-despesas {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .despesa-item-modal {
+      padding: 15px;
+      border-radius: 8px;
+      background: white;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      border-left: 4px solid #3498db;
+    }
+    .despesa-item-modal:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .despesa-item-modal.active {
+      background: #f0f7fd;
+      border-left-color: #2980b9;
+    }
+    .despesa-item-modal::after {
+      content: "▼";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: transform 0.3s;
+      color: #7f8c8d;
+    }
+    .despesa-item-modal.active::after {
+      transform: translateY(-50%) rotate(180deg);
+      color: #2980b9;
+    }
+    .despesa-detalhes {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      animation: fadeIn 0.3s;
+    }
+    .despesa-detalhes.active {
+      display: block;
+    }
+    .despesa-imagem {
+      max-width: 100%;
+      max-height: 300px;
+      margin-top: 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: block;
+      border: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <button class="logout-btn" onclick="logout()">Sair</button>
+  <div class="user-info" id="userInfo"></div>
+  
+  <div class="container">
+    <h1>Viagens Salvas</h1>
+    
+    <div id="total-saldo-container" class="total-saldo">
+      Saldo Total: R$ 0,00
+    </div>
+    
+    <div class="search-bar">
+      <input type="text" id="busca" placeholder="Pesquisar por motorista ou placa..."/>
+      <input type="date" id="data-inicio"/>
+      <input type="date" id="data-fim"/>
+      <select id="filtro-caminhao">
+        <option value="">Todos os caminhões</option>
+        <option value="FTF">FTF</option>
+        <option value="EHH">EHH</option>
+        <option value="MMB">MMB</option>
+        <option value="ADV">ADV</option>
+      </select>
+    </div>
+
+    <div class="export-buttons">
+      <button onclick="exportarExcel()">Exportar Excel</button>
+      <button onclick="exportarPDF()">Exportar PDF</button>
+    </div>
+
+    <div id="viagens-grid" class="viagens-grid"></div>
+  </div>
+
+  <!-- Modal de Detalhes -->
+  <div id="modalDetalhes" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Detalhes da Viagem</h2>
+        <span class="close-btn" onclick="fecharModalDetalhes()">&times;</span>
+      </div>
+      <div id="detalhes-content"></div>
+    </div>
+  </div>
+
+  <!-- Modal de Despesas -->
+  <div id="modalDespesas" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="titulo-despesas">Despesas da Viagem</h2>
+        <span class="close-btn" onclick="fecharModalDespesas()">&times;</span>
+      </div>
+      <div id="total-despesas-modal" class="total-despesas">
+        Total de Despesas: R$ 0,00
+      </div>
+      <div id="lista-despesas-modal"></div>
+    </div>
+  </div>
+
+  <script>
+    // Verifica o login ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+      const userData = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (!userData || userData.tipo !== 'administrador') {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Mostra informações do usuário
+      document.getElementById('userInfo').textContent = userData.nome;
+      
+      // Carrega as viagens
+      carregarViagens();
+    });
+
+    // Inicializa jsPDF
+    const { jsPDF } = window.jspdf;
+
+    function formatarReal(valor) {
+      return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function parseValorReal(valorStr) {
+      return parseFloat(valorStr.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+    }
+
+    function calcularTotais(viagens) {
+      let totalReceitas = 0;
+      let totalDespesas = 0;
+      
+      viagens.forEach(v => {
+        totalReceitas += parseValorReal(v.receitas);
+        totalDespesas += v.despesas.reduce((soma, d) => soma + parseValorReal(d.valor), 0);
+      });
+      
+      return {
+        saldo: totalReceitas - totalDespesas,
+        despesas: totalDespesas
+      };
+    }
+
+    function atualizarTotalSaldo(viagens) {
+      const totais = calcularTotais(viagens);
+      document.getElementById("total-saldo-container").textContent = 
+        `Saldo Total: ${formatarReal(totais.saldo)}`;
+    }
+
+    function carregarViagens() {
+      const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      const grid = document.getElementById("viagens-grid");
+      const busca = document.getElementById("busca").value.toLowerCase();
+      const dataInicio = document.getElementById("data-inicio").value;
+      const dataFim = document.getElementById("data-fim").value;
+      const filtroCaminhao = document.getElementById("filtro-caminhao").value;
+
+      grid.innerHTML = "";
+
+      // Filtra as viagens
+      const viagensFiltradas = viagens.filter(v => {
+        if (busca && !(v.motorista.toLowerCase().includes(busca) || v.placa.toLowerCase().includes(busca))) return false;
+        if (dataInicio && new Date(v.dataCarga) < new Date(dataInicio)) return false;
+        if (dataFim && new Date(v.dataCarga) > new Date(dataFim)) return false;
+        if (filtroCaminhao && !v.placa.startsWith(filtroCaminhao)) return false;
+        return true;
+      });
+
+      // Atualiza o saldo total com as viagens filtradas
+      atualizarTotalSaldo(viagensFiltradas);
+
+      viagensFiltradas.forEach((v, index) => {
+        const totalDespesas = v.despesas.reduce((soma, d) => {
+          return soma + parseValorReal(d.valor);
+        }, 0);
+
+        const totalReceitas = parseValorReal(v.receitas);
+        const saldo = totalReceitas - totalDespesas;
+
+        const div = document.createElement("div");
+        div.className = "viagem-card";
+        div.innerHTML = `
+          <div><strong>COD:</strong> ${String(index + 1).padStart(4, '0')} <strong>${v.placa}</strong></div>
+          <div><strong>CARGA:</strong> ${v.dataCarga} / <strong>DESCARGA:</strong> ${v.dataDescarga}</div>
+          <div><strong>RECEITA:</strong> ${formatarReal(totalReceitas)}</div>
+          <div><strong>DESPESA:</strong> ${formatarReal(totalDespesas)}</div>
+          <div><strong>SALDO:</strong> ${formatarReal(saldo)}</div>
+          <button onclick="abrirModalDetalhes(${viagens.indexOf(v)})">DETALHES</button>
+          <button onclick="abrirModalDespesas(${viagens.indexOf(v)})">VER DESPESAS</button>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function abrirModalDetalhes(index) {
+      const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      const viagem = viagens[index];
+      
+      document.querySelector("#modalDetalhes .modal-title").textContent = 
+        `Viagem ${String(index + 1).padStart(4, '0')} - ${viagem.placa}`;
+      
+      const content = document.getElementById("detalhes-content");
+      content.innerHTML = `
+        <div class="detalhes-grid">
+          <div class="detalhes-item">
+            <strong>Motorista</strong>
+            <span>${viagem.motorista || 'Não informado'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Agenciador</strong>
+            <span>${viagem.agenciador || 'Não informado'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Origem</strong>
+            <span>${viagem.localCarga || 'Não informado'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Destino</strong>
+            <span>${viagem.localDescarga || 'Não informado'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Peso Carga</strong>
+            <span>${viagem.pesoCarga || '0'} kg</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Peso Descarga</strong>
+            <span>${viagem.pesoDescarga || '0'} kg</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>KM Carga</strong>
+            <span>${viagem.kmCarga || '0'} km</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>KM Descarga</strong>
+            <span>${viagem.kmDescarga || '0'} km</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Receitas</strong>
+            <span>${viagem.receitas || 'R$ 0,00'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Despesas</strong>
+            <span>${viagem.totalDespesas || 'R$ 0,00'}</span>
+          </div>
+          <div class="detalhes-item">
+            <strong>Saldo</strong>
+            <span>${formatarReal(parseValorReal(viagem.receitas) - parseValorReal(viagem.totalDespesas))}</span>
+          </div>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <button onclick="excluirViagem(${index}); fecharModalDetalhes()" 
+                  style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Excluir Viagem
+          </button>
+        </div>
+      `;
+      
+      document.getElementById("modalDetalhes").style.display = "block";
+    }
+    
+    function fecharModalDetalhes() {
+      document.getElementById("modalDetalhes").style.display = "none";
+    }
+
+    // Variável para controlar a despesa atualmente aberta
+    let despesaAberta = null;
+    let viagemAtual = null;
+    
+    function abrirModalDespesas(index) {
+      const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      viagemAtual = viagens[index];
+      
+      document.getElementById("titulo-despesas").textContent = 
+        `Despesas da Viagem ${String(index + 1).padStart(4, '0')} - ${viagemAtual.placa}`;
+      
+      // Calcula o total de despesas desta viagem
+      const totalDespesas = viagemAtual.despesas.reduce((total, d) => {
+        return total + parseValorReal(d.valor);
+      }, 0);
+      
+      document.getElementById("total-despesas-modal").textContent = 
+        `Total de Despesas: ${formatarReal(totalDespesas)}`;
+      
+      const listaDespesas = document.getElementById("lista-despesas-modal");
+      listaDespesas.innerHTML = "";
+      
+      if (viagemAtual.despesas.length === 0) {
+        listaDespesas.innerHTML = "<p style='text-align: center; color: #7f8c8d;'>Nenhuma despesa registrada para esta viagem.</p>";
+      } else {
+        viagemAtual.despesas.forEach((despesa, i) => {
+          const item = document.createElement("div");
+          item.className = "despesa-item-modal";
+          item.innerHTML = `
+            <strong>${despesa.categoria || 'Desconhecido'}</strong> - ${despesa.valor}
+          `;
+          item.onclick = (e) => {
+            e.stopPropagation();
+            toggleDetalhesDespesa(i);
+          };
+          listaDespesas.appendChild(item);
+          
+          const detalhes = document.createElement("div");
+          detalhes.className = "despesa-detalhes";
+          detalhes.id = `detalhes-${i}`;
+          detalhes.innerHTML = `
+            <p><strong>Descrição:</strong> ${despesa.descricao || 'Nenhuma descrição fornecida'}</p>
+            ${despesa.imagem ? `<img src="${despesa.imagem}" class="despesa-imagem" alt="Comprovante">` : ''}
+          `;
+          listaDespesas.appendChild(detalhes);
+        });
+      }
+      
+      document.getElementById("modalDespesas").style.display = "block";
+    }
+    
+    function toggleDetalhesDespesa(index) {
+      const detalhes = document.getElementById(`detalhes-${index}`);
+      const item = document.querySelectorAll(".despesa-item-modal")[index];
+      
+      // Se já está aberto, fecha
+      if (despesaAberta === index) {
+        detalhes.classList.remove("active");
+        item.classList.remove("active");
+        despesaAberta = null;
+        return;
+      }
+      
+      // Fecha a despesa aberta anteriormente (se houver)
+      if (despesaAberta !== null) {
+        document.getElementById(`detalhes-${despesaAberta}`).classList.remove("active");
+        document.querySelectorAll(".despesa-item-modal")[despesaAberta].classList.remove("active");
+      }
+      
+      // Abre a nova despesa
+      detalhes.classList.add("active");
+      item.classList.add("active");
+      despesaAberta = index;
+      
+      // Rolagem suave para a despesa selecionada
+      detalhes.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function fecharModalDespesas() {
+      document.getElementById("modalDespesas").style.display = "none";
+      viagemAtual = null;
+      despesaAberta = null;
+    }
+
+    function excluirViagem(index) {
+      if (confirm("Deseja excluir esta viagem?")) {
+        const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+        viagens.splice(index, 1);
+        localStorage.setItem("viagens", JSON.stringify(viagens));
+        carregarViagens();
+      }
+    }
+
+    function exportarExcel() {
+      const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      const dadosFormatados = viagens.map(v => ({
+        "Código": String(viagens.indexOf(v) + 1).padStart(4, '0'),
+        "Placa": v.placa,
+        "Motorista": v.motorista,
+        "Data Carga": v.dataCarga,
+        "Data Descarga": v.dataDescarga,
+        "Origem": v.localCarga || 'Não informado',
+        "Destino": v.localDescarga || 'Não informado',
+        "Receitas": v.receitas,
+        "Despesas": v.totalDespesas,
+        "Saldo": `R$ ${(parseFloat(v.receitas.replace('R$', '').replace('.', '').replace(',', '.')) - 
+                parseFloat(v.totalDespesas.replace('R$', '').replace('.', '').replace(',', '.'))).toFixed(2).replace('.', ',')}`
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Viagens");
+      XLSX.writeFile(wb, "viagens.xlsx");
+    }
+
+    function exportarPDF() {
+      const viagens = JSON.parse(localStorage.getItem("viagens") || "[]");
+      const doc = new jsPDF();
+      
+      let y = 20;
+      viagens.forEach((v, i) => {
+        doc.text(`Viagem ${i + 1}: ${v.placa} - ${v.motorista}`, 10, y);
+        doc.text(`Período: ${v.dataCarga} a ${v.dataDescarga}`, 10, y + 10);
+        doc.text(`Origem: ${v.localCarga || 'Não informado'}`, 10, y + 20);
+        doc.text(`Destino: ${v.localDescarga || 'Não informado'}`, 10, y + 30);
+        doc.text(`Receitas: ${v.receitas}`, 10, y + 40);
+        doc.text(`Despesas: ${v.totalDespesas}`, 10, y + 50);
+        doc.text(`Saldo: R$ ${(parseFloat(v.receitas.replace('R$', '').replace('.', '').replace(',', '.')) - 
+                parseFloat(v.totalDespesas.replace('R$', '').replace('.', '').replace(',', '.'))).toFixed(2).replace('.', ',')}`, 10, y + 60);
+        y += 70;
+        
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      
+      doc.save("viagens.pdf");
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    }
+
+    // Fechar modais ao clicar fora
+    window.onclick = function(event) {
+      if (event.target == document.getElementById("modalDetalhes")) {
+        fecharModalDetalhes();
+      }
+      if (event.target == document.getElementById("modalDespesas")) {
+        fecharModalDespesas();
+      }
+    };
+
+    document.getElementById("busca").addEventListener("input", carregarViagens);
+    document.getElementById("data-inicio").addEventListener("change", carregarViagens);
+    document.getElementById("data-fim").addEventListener("change", carregarViagens);
+    document.getElementById("filtro-caminhao").addEventListener("change", carregarViagens);
+  </script>
+</body>
+</html>
