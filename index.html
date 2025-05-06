@@ -94,25 +94,60 @@
       // Limpa mensagens de erro anteriores
       errorMessage.textContent = '';
       
-      // Verifica as credenciais
-      if ((username === 'aparecidoleme' && password === '123') || 
-          (username === 'felipeservelhere' && password === '123')) {
-        
-        // Armazena os dados do usuário no localStorage
-        if (username === 'aparecidoleme') {
-          localStorage.setItem('currentUser', JSON.stringify({
-            nome: 'APARECIDO LEME',
-            placa: 'FTF-9C56',
-            tipo: 'motorista'
-          }));
-          window.location.href = 'formulario.html';
-        } else {
-          localStorage.setItem('currentUser', JSON.stringify({
-            nome: 'FELIPE SERVELHERE',
-            tipo: 'administrador'
-          }));
-          window.location.href = 'admin.html';
+      // Lista de usuários e suas credenciais
+      const users = {
+        'aparecidoleme': {
+          nome: 'APARECIDO LEME',
+          placa: 'FTF-9C56',
+          tipo: 'motorista',
+          senha: '123'
+        },
+        'felipeservelhere': {
+          nome: 'FELIPE SERVELHERE',
+          tipo: 'administrador',
+          senha: '123'
+        },
+        'xuxa': {
+          nome: 'XUXA',
+          placa: 'MMB-7D60',
+          tipo: 'motorista',
+          senha: '123'
+        },
+        'gorgeleme': {
+          nome: 'GORGÉ LEME',
+          placa: 'EHH-8E43',
+          tipo: 'motorista',
+          senha: '123'
+        },
+        'mendes': {
+          nome: 'MENDES',
+          placa: 'ATB-4F76',
+          tipo: 'motorista',
+          senha: '123'
+        },
+        'weslleymenegheti': {
+          nome: 'WESLLEY MENEGHETI',
+          tipo: 'administrador',
+          senha: '123'
+        },
+        'eversonolsen': {
+          nome: 'EVERSON OLSEN',
+          tipo: 'administrador',
+          senha: '123'
         }
+      };
+      
+      // Verifica se o usuário existe e a senha está correta
+      if (users[username] && users[username].senha === password) {
+        const user = users[username];
+        localStorage.setItem('currentUser', JSON.stringify({
+          nome: user.nome,
+          placa: user.placa || '',
+          tipo: user.tipo
+        }));
+        
+        // Redireciona para a página apropriada
+        window.location.href = user.tipo === 'motorista' ? 'formulario.html' : 'admin.html';
       } else {
         errorMessage.textContent = 'Usuário ou senha incorretos!';
       }
